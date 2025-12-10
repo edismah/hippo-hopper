@@ -7,8 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     
     <!-- --- FAVICON (WEBSITE ICON) --- -->
-    <!-- Assuming your hippo.png is uploaded to the assets folder -->
-    <link rel="icon" type="image/png" href="assets/hippo.png">
+    <!-- Corrected path to hippoicon.png -->
+    <link rel="icon" type="image/png" href="assets/hippoicon.png">
     
     <!-- --- SOCIAL MEDIA/OPEN GRAPH PREVIEW METADATA --- -->
     <meta property="og:title" content="Hippo Hopper - The Global High Score Game">
@@ -77,32 +77,56 @@
             color: white;
             z-index: 10;
         }
+        
+        /* New Combined Link Button Styling */
+        .community-link-btn {
+            position: absolute;
+            top: 5%; /* Positioned at the top */
+            width: 150px; 
+            padding: 10px;
+            border-radius: 10px;
+            background: #2a2a2a; /* Dark background */
+            color: white; /* White text */
+            font-size: 10px;
+            text-decoration: none;
+            text-shadow: 1px 1px 0 #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.2;
+            pointer-events: auto;
+            border: 3px solid #333;
+            box-shadow: 0 4px 0 #1a1a1a;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
 
+        .community-link-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #1a1a1a;
+        }
+        .community-text {
+            font-size: 8px; /* Smaller font for secondary line */
+            opacity: 0.8;
+        }
+
+        /* Score display moved down to be below the new button */
         .score-display {
             position: absolute;
-            top: 5%;
+            top: 18%; 
             font-size: 32px;
             color: white;
             text-shadow: 4px 4px 0 #000;
             z-index: 10;
         }
-
-        .promo-link {
+        
+        .footer-text {
             position: absolute;
-            top: 11%;
-            font-size: 10px;
-            color: #0372ff;
-            text-decoration: none;
-            z-index: 10;
-            pointer-events: auto;
+            bottom: 5%;
+            font-size: 8px; 
+            color: white;
             text-shadow: 1px 1px 0 #000;
-            opacity: 0.8;
-            transition: opacity 0.2s;
-        }
-        .promo-link:hover {
-            opacity: 1;
-            text-decoration: underline;
-            color: #4d9aff;
+            opacity: 0.7;
         }
 
         .interactive-layer {
@@ -191,25 +215,9 @@
         .char:nth-child(11) { animation-delay: 0.9s; }
         .char:nth-child(12) { animation-delay: 1.0s; }
 
-        .title-subtext {
-            color: white;
-            font-size: 8px; 
-            margin-top: 5px; /* Moved lower */
-            margin-bottom: 25px;
-            text-shadow: 1px 1px 0 #000;
-        }
-        
-        .footer-text {
-            position: absolute;
-            bottom: 5%;
-            font-size: 8px; 
-            color: white;
-            text-shadow: 1px 1px 0 #000;
-            opacity: 0.7;
-        }
-
         .menu-buttons {
-            margin-top: 15px;
+            /* Increased margin for more space above buttons */
+            margin-top: 50px; 
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -224,7 +232,7 @@
             padding: 15px 10px;
             font-family: 'Press Start 2P', cursive;
             font-size: 14px;
-            border-radius: 25px;
+            border-radius: 25px; /* Keeps rounded rectangle style */
             cursor: pointer;
             box-shadow: 0 6px 0 #004cb3;
             text-transform: uppercase;
@@ -260,16 +268,45 @@
         
         /* Coin icon inside the button */
         .coin-icon {
-            width: 20px; /* Increased from 12px */
-            height: 20px; /* Increased from 12px */
+            width: 40px; 
+            height: 40px; 
             image-rendering: pixelated;
+            display: inline-block; 
+            vertical-align: middle;
+        }
+
+        /* Styling for the new larger promo text container */
+        .promo-text-container {
+            text-align:center; 
+            padding: 20px 0 40px 0; /* Increased padding above/below buttons */
+            color:#00fa9a; 
+            font-size: 14px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 5px;
+            line-height: 1.1;
+        }
+        
+        .promo-row {
+             /* New row for the coin and text */
+            display: flex;
+            flex-direction: column; /* Changed to column to put coin above text */
+            align-items: center;
+            justify-content: center;
+            gap: 5px; 
+        }
+        
+        .promo-row span {
+             margin-top: 5px; 
         }
 
         /* NEW: Styles for the in-menu Highscore List */
         .menu-highscore-list {
             width: 90%;
             max-width: 320px;
-            margin-top: 30px;
+            margin-top: 60px; /* Increased margin below buttons and promo text */
             background: rgba(17, 22, 41, 0.9);
             border: 4px solid #00fa9a;
             padding: 15px;
@@ -277,13 +314,13 @@
         }
         .menu-highscore-list h2 {
             color: #00fa9a;
-            font-size: 12px; /* Smaller than modal title */
+            font-size: 12px; 
             margin-top: 0;
             margin-bottom: 10px;
             text-shadow: 1px 1px 0 #000;
         }
         .menu-highscore-list .score-row {
-            font-size: 9px; /* Smaller font for list */
+            font-size: 9px; 
             color: #fff;
             border-bottom: 1px dashed #333;
             padding: 2px 0;
@@ -377,8 +414,13 @@
 
     <div id="game-container">
         <div id="ui-layer">
+            <!-- NEW COMBINED LINK BUTTON -->
+            <a href="https://resupply.fi" target="_blank" class="community-link-btn">
+                <span>RESUPPLY.FI</span>
+                <span class="community-text">COMMUNITY GAME</span>
+            </a>
+            
             <div class="score-display" id="score">0</div>
-            <a href="https://resupply.fi" target="_blank" class="promo-link">resupply.fi</a>
             
             <!-- FOOTER TEXT MOVED TO THE BOTTOM OF UI LAYER -->
             <p class="footer-text">Past hops do not predict future hops.</p>
@@ -394,15 +436,16 @@
                             <div style="flex-basis: 100%; height: 5px;"></div>
                             <span class="char">H</span><span class="char">O</span><span class="char">P</span><span class="char">P</span><span class="char">E</span><span class="char">R</span>
                         </h1>
-                        <!-- NEW SUBTEXT - moved down via CSS margins -->
-                        <p class="title-subtext">Because hippos can fly if yields are high enough.</p>
                     </div>
                     
                     <div class="menu-buttons">
-                        <!-- UPDATED COIN TEXT SIZE AND CANVAS SIZE -->
-                        <div style="text-align:center; margin-bottom: 10px; color:#00fa9a; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                            <canvas id="coin-preview-canvas" width="20" height="20" class="coin-icon"></canvas>
-                            Collect reUSD. Fly responsibly.
+                        <!-- REFINED: Promo text container - Coin above text, centered -->
+                        <div class="promo-text-container">
+                            <div class="promo-row">
+                                <canvas id="coin-preview-canvas" width="40" height="40" class="coin-icon"></canvas>
+                            </div>
+                            <span>Collect reUSD.</span>
+                            <span>Fly responsibly.</span>
                         </div>
                         <button class="btn" id="start-btn">
                             <img src="assets/hippo.png" class="btn-icon" alt="">
@@ -416,7 +459,7 @@
 
                     <!-- NEW: HIGH SCORE PREVIEW ADDED TO MAIN MENU -->
                     <div id="menu-highscore-preview" class="menu-highscore-list">
-                        <h2>GLOBAL TOP 5</h2>
+                        <h2>GLOBAL TOP 3</h2>
                         <div id="menu-highscore-entries">Loading...</div>
                     </div>
 
@@ -461,6 +504,35 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+    // --- VIRTUAL RESOLUTION & COLORS (MOVED TO TOP) ---
+    // Virtual resolution
+    const VIRTUAL_WIDTH = 320; 
+    const VIRTUAL_HEIGHT = 568; 
+
+    const COLORS = {
+        background: '#111629',
+        pipes: '#0372ff',
+        pipeOutline: '#000000',
+        pipeHighlight: '#4d9aff',
+        coin: '#00fa9a',
+        hippoSkin: '#8ea8c3',
+        hippoDark: '#6b8299',
+        bgCityRear: '#0d1120', 
+        bgCityFront: '#161d36', 
+        bgPark: '#1a2639' 
+    };
+
+    let GAME = {
+        state: 'start',
+        score: 0,
+        frame: 0,
+        baseSpeed: 1.5,
+        speed: 1.5,
+        gravity: 0.18, 
+        jumpStrength: -4.0 
+    };
+
+    // --- FIREBASE CONFIGURATION ---
     // Your specific Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyDQ18VXtdzTokZT131cPxvt9e29DEPp-_c",
@@ -522,9 +594,9 @@
         });
     }
 
-    // New function to load the top 5 for the main menu preview
+    // New function to load the top 3 for the main menu preview (adjusted from previous code)
     window.loadMenuHighscores = async function() {
-        const scores = await fetchScores(5);
+        const scores = await fetchScores(3);
         renderScores('menu-highscore-entries', scores, true);
     }
     
@@ -598,37 +670,52 @@
     const coinSprite = new Image();
     coinSprite.src = 'assets/reusd.png'; // Expecting 1200x200 for 6 frames (2x resolution)
     
+    // Cloud drawing class
+    class Cloud {
+        constructor() {
+            this.reset();
+            this.y = Math.random() * VIRTUAL_HEIGHT * 0.3; // Top 30% of the screen
+        }
+
+        reset() {
+            this.x = VIRTUAL_WIDTH + Math.random() * VIRTUAL_WIDTH;
+            this.y = Math.random() * VIRTUAL_HEIGHT * 0.3;
+            this.size = Math.random() * 20 + 30; // Size between 30 and 50
+            this.speed = Math.random() * 0.1 + 0.05; // Very slow speed
+        }
+
+        update(effectiveSpeed) {
+            this.x -= this.speed * effectiveSpeed * 0.1; // Slower than scenery
+            if (this.x + this.size < 0) {
+                this.reset();
+            }
+        }
+
+        draw() {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.03)'; // Very low opacity white
+            
+            // Draw a basic pixelated cloud shape (3-part blob)
+            const s = this.size;
+            const x = Math.floor(this.x);
+            const y = Math.floor(this.y);
+
+            // Large central blob
+            ctx.fillRect(x, y + 4, s, s * 0.6);
+            // Left blob
+            ctx.fillRect(x - s * 0.3, y + 8, s * 0.5, s * 0.5);
+            // Right blob
+            ctx.fillRect(x + s * 0.6, y, s * 0.5, s * 0.4);
+        }
+    }
+
+    // Initialize cloud field
+    const clouds = Array.from({ length: 5 }, () => new Cloud());
+
+    
     // Coin animation canvas for the menu subtext
     const coinPreviewCanvas = document.getElementById('coin-preview-canvas');
     const coinPreviewCtx = coinPreviewCanvas.getContext('2d');
     coinPreviewCtx.imageSmoothingEnabled = false;
-
-    // Virtual resolution
-    const VIRTUAL_WIDTH = 320; 
-    const VIRTUAL_HEIGHT = 568; 
-
-    const COLORS = {
-        background: '#111629',
-        pipes: '#0372ff',
-        pipeOutline: '#000000',
-        pipeHighlight: '#4d9aff',
-        coin: '#00fa9a',
-        hippoSkin: '#8ea8c3',
-        hippoDark: '#6b8299',
-        bgCityRear: '#0d1120', 
-        bgCityFront: '#161d36', 
-        bgPark: '#1a2639' 
-    };
-
-    let GAME = {
-        state: 'start',
-        score: 0,
-        frame: 0,
-        baseSpeed: 1.5,
-        speed: 1.5,
-        gravity: 0.18, 
-        jumpStrength: -4.0 
-    };
 
     function resize() {
         canvas.width = VIRTUAL_WIDTH;
@@ -660,8 +747,9 @@
             else height = Math.random() * 30 + 20; 
             this.elements.push({ x, width, height });
         }
-        update() {
-            const moveSpeed = (GAME.speed * this.speedFactor);
+        update(effectiveSpeed) {
+            const moveSpeed = (effectiveSpeed * this.speedFactor);
+            
             this.elements.forEach(el => el.x -= moveSpeed);
             if (this.elements[0].x + this.elements[0].width < 0) this.elements.shift();
             const lastEl = this.elements[this.elements.length - 1];
@@ -863,18 +951,19 @@
         }
     }
     
-    // --- Coin Preview Animation ---
+    // --- Coin Preview Animation (Updated for larger size and slower speed) ---
     function animateCoinPreview() {
         requestAnimationFrame(animateCoinPreview);
         if (!coinSprite.complete) return;
         
-        coinFrame = (coinFrame + 1) % (6 * 8); // 6 frames, 8 updates per frame
+        // Use 6 frames, 16 updates per frame for slower animation (16 is for half speed compared to 8)
+        coinFrame = (coinFrame + 1) % (6 * 16); 
 
-        const frameIndex = Math.floor(coinFrame / 8);
+        const frameIndex = Math.floor(coinFrame / 16);
         const sSize = 200;
-        const drawSize = 20; // Drawing the icon small
+        const drawSize = 40; // New larger size
         
-        coinPreviewCtx.clearRect(0, 0, 20, 20); // Cleared area matches new canvas size
+        coinPreviewCtx.clearRect(0, 0, drawSize, drawSize); // Cleared area matches new canvas size
 
         coinPreviewCtx.drawImage(
             coinSprite, 
@@ -947,7 +1036,7 @@
         document.getElementById('final-score').innerText = GAME.score;
         document.getElementById('game-over-screen').classList.remove('hidden');
         document.getElementById('score').classList.add('hidden'); 
-        document.querySelector('.promo-link').classList.add('hidden'); 
+        document.querySelector('.community-link-btn').classList.add('hidden'); 
     }
 
     function returnToMenu() {
@@ -955,7 +1044,7 @@
         document.getElementById('game-over-screen').classList.add('hidden');
         document.getElementById('start-screen').classList.remove('hidden');
         document.getElementById('score').classList.remove('hidden'); 
-        document.querySelector('.promo-link').classList.remove('hidden'); 
+        document.querySelector('.community-link-btn').classList.remove('hidden'); 
         updateScore(0);
         hippo.reset();
         pipes = [];
@@ -970,7 +1059,7 @@
         document.getElementById('highscore-modal').style.display = 'none';
         document.getElementById('countdown-layer').classList.remove('hidden');
         document.getElementById('score').classList.remove('hidden');
-        document.querySelector('.promo-link').classList.remove('hidden');
+        document.querySelector('.community-link-btn').classList.remove('hidden');
         
         initGame(); 
         
@@ -998,14 +1087,19 @@
         ctx.fillStyle = COLORS.background;
         ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 
-        if (GAME.state === 'playing') {
-            cityLayer.update();
-            cityLayerFront.update();
-            parkLayer.update();
-        }
+        // Determine the speed for background animations
+        const effectiveSpeed = GAME.state === 'playing' ? GAME.speed : GAME.baseSpeed;
+
+        // Always update and draw background layers (city/park) and clouds for animation behind the menu
+        cityLayer.update(effectiveSpeed);
+        cityLayerFront.update(effectiveSpeed);
+        parkLayer.update(effectiveSpeed);
+        clouds.forEach(c => c.update(effectiveSpeed)); 
+        
         cityLayer.draw();
         cityLayerFront.draw();
         parkLayer.draw();
+        clouds.forEach(c => c.draw());
 
         if (GAME.state === 'playing') {
             GAME.frame++;
