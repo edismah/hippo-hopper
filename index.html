@@ -140,7 +140,7 @@
         }
 
         .title-box h1 {
-            font-size: 44px; /* RESET to 44px for better mobile fit */
+            font-size: 40px; /* DECREASED to 40px */
             line-height: 1.1;
             text-shadow: 6px 6px 0 #000;
             margin: 0;
@@ -616,7 +616,8 @@
             ctx.rotate(this.rotation * Math.PI / 180);
 
             if (hippoSprite.complete && hippoSprite.naturalWidth !== 0) {
-                ctx.drawImage(hippoSprite, -17, -17, 34, 34);
+                // Increased draw size by 20% (34 -> 41)
+                ctx.drawImage(hippoSprite, -21, -21, 41, 41);
             } else {
                 ctx.fillStyle = COLORS.hippoSkin;
                 ctx.fillRect(-12, -8, 24, 16);
@@ -700,7 +701,7 @@
         constructor(pipe) {
             this.x = pipe.x + pipe.width / 2;
             this.y = pipe.topHeight + pipe.gap / 2;
-            this.size = 12;
+            this.size = 15; // Increased hitbox size by 20% (12 -> 15)
             this.collected = false;
             this.floatTimer = Math.random() * 10;
             
@@ -728,15 +729,15 @@
             
             // Source frame size is 200px (1200 / 6)
             const sSize = 200;
-            // Draw size reset to 24px (original desired size)
-            const drawSize = 24; 
+            // Draw size reset to 29px (original 24px + 20%)
+            const drawSize = 29; 
 
             if (coinSprite.complete && coinSprite.naturalWidth !== 0) {
                 
                 ctx.drawImage(
                     coinSprite, 
                     this.frameX * sSize, 0, sSize, sSize, // Source: Use sSize for source width/height (200x200 crop)
-                    cx - drawSize/2 + this.size/2, cy - drawSize/2 + this.size/2, drawSize, drawSize // Destination: Draw at original scaled size (24x24)
+                    cx - drawSize/2 + this.size/2, cy - drawSize/2 + this.size/2, drawSize, drawSize // Destination: Draw at new scaled size (29x29)
                 );
             } else {
                 ctx.fillStyle = COLORS.coin;
@@ -780,10 +781,11 @@
     }
 
     function checkCollisions() {
-        const hitboxX = hippo.x - 10;
-        const hitboxY = hippo.y - 8;
-        const hitboxW = 20;
-        const hitboxH = 16;
+        // Adjusted hitbox size to scale with hippo's new size (20x16 -> 24x20)
+        const hitboxX = hippo.x - 12; // Adjusted from 10
+        const hitboxY = hippo.y - 10; // Adjusted from 8
+        const hitboxW = 24; // Adjusted from 20
+        const hitboxH = 20; // Adjusted from 16
 
         pipes.forEach(p => {
             if (hitboxX + hitboxW > p.x && hitboxX < p.x + p.width) {
