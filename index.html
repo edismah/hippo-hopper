@@ -7,8 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     
     <!-- --- FAVICON (WEBSITE ICON) --- -->
-    <!-- Assuming your hippo.png is uploaded to the assets folder -->
-    <link rel="icon" type="image/png" href="assets/hippo.png">
+    <!-- Updated path to hippoicon.png -->
+    <link rel="icon" type="image/png" href="assets/hippoicon.png">
     
     <!-- --- SOCIAL MEDIA/OPEN GRAPH PREVIEW METADATA --- -->
     <meta property="og:title" content="Hippo Hopper - The Global High Score Game">
@@ -78,22 +78,33 @@
             z-index: 10;
         }
 
+        /* Score display moved down to make space for the badge */
         .score-display {
             position: absolute;
-            top: 5%;
+            top: 15%; 
             font-size: 32px;
             color: white;
             text-shadow: 4px 4px 0 #000;
             z-index: 10;
         }
-
-        .promo-link {
+        
+        /* New Badge Container */
+        .promo-badge-container {
             position: absolute;
-            top: 11%;
+            top: 5%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .promo-link { /* Existing CSS modified to be relative to parent */
+            position: static; 
             font-size: 10px;
             color: #0372ff;
             text-decoration: none;
-            z-index: 10;
             pointer-events: auto;
             text-shadow: 1px 1px 0 #000;
             opacity: 0.8;
@@ -103,6 +114,19 @@
             opacity: 1;
             text-decoration: underline;
             color: #4d9aff;
+        }
+        
+        /* New Community Badge Styling */
+        .community-badge {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 8px;
+            padding: 4px 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            text-shadow: 1px 1px 0 #000;
+            opacity: 0.8;
+            pointer-events: none; /* Not interactive */
         }
 
         .interactive-layer {
@@ -204,7 +228,7 @@
 
         .menu-buttons {
             /* Increased margin for more space above buttons */
-            margin-top: 30px; 
+            margin-top: 50px; /* Increased from 30px to 50px */
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -219,7 +243,7 @@
             padding: 15px 10px;
             font-family: 'Press Start 2P', cursive;
             font-size: 14px;
-            border-radius: 25px;
+            border-radius: 25px; /* Keeps rounded rectangle style */
             cursor: pointer;
             box-shadow: 0 6px 0 #004cb3;
             text-transform: uppercase;
@@ -258,14 +282,14 @@
             width: 40px; 
             height: 40px; 
             image-rendering: pixelated;
-            display: inline-block; /* Ensure it respects vertical alignment */
+            display: inline-block; 
             vertical-align: middle;
         }
 
         /* Styling for the new larger promo text container */
         .promo-text-container {
             text-align:center; 
-            padding: 15px 0 30px 0; /* Increased bottom padding */
+            padding: 20px 0 40px 0; /* Increased padding above/below buttons */
             color:#00fa9a; 
             font-size: 14px; 
             display: flex; 
@@ -288,7 +312,7 @@
         .menu-highscore-list {
             width: 90%;
             max-width: 320px;
-            margin-top: 40px; /* Increased margin below buttons */
+            margin-top: 60px; /* Increased margin below buttons and promo text */
             background: rgba(17, 22, 41, 0.9);
             border: 4px solid #00fa9a;
             padding: 15px;
@@ -396,8 +420,13 @@
 
     <div id="game-container">
         <div id="ui-layer">
+            <!-- NEW PROMO BADGE CONTAINER -->
+            <div class="promo-badge-container">
+                <a href="https://resupply.fi" target="_blank" class="promo-link">resupply.fi</a>
+                <div class="community-badge">COMMUNITY GAME</div>
+            </div>
+            
             <div class="score-display" id="score">0</div>
-            <a href="https://resupply.fi" target="_blank" class="promo-link">resupply.fi</a>
             
             <!-- FOOTER TEXT MOVED TO THE BOTTOM OF UI LAYER -->
             <p class="footer-text">Past hops do not predict future hops.</p>
@@ -477,10 +506,39 @@
     </div>
 
 <script type="module">
-    // --- FIREBASE SETUP ---
+    // --- FIREBASE IMPORTS ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+    // --- VIRTUAL RESOLUTION & COLORS (MOVED TO TOP) ---
+    // Virtual resolution
+    const VIRTUAL_WIDTH = 320; 
+    const VIRTUAL_HEIGHT = 568; 
+
+    const COLORS = {
+        background: '#111629',
+        pipes: '#0372ff',
+        pipeOutline: '#000000',
+        pipeHighlight: '#4d9aff',
+        coin: '#00fa9a',
+        hippoSkin: '#8ea8c3',
+        hippoDark: '#6b8299',
+        bgCityRear: '#0d1120', 
+        bgCityFront: '#161d36', 
+        bgPark: '#1a2639' 
+    };
+
+    let GAME = {
+        state: 'start',
+        score: 0,
+        frame: 0,
+        baseSpeed: 1.5,
+        speed: 1.5,
+        gravity: 0.18, 
+        jumpStrength: -4.0 
+    };
+
+    // --- FIREBASE CONFIGURATION ---
     // Your specific Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyDQ18VXtdzTokZT131cPxvt9e29DEPp-_c",
@@ -599,7 +657,7 @@
         }
     }
 
-    // --- GAME LOGIC (Moved inside module to access same scope) ---
+    // --- GAME LOGIC ---
     
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -632,8 +690,8 @@
             this.speed = Math.random() * 0.1 + 0.05; // Very slow speed
         }
 
-        update() {
-            this.x -= this.speed * GAME.speed * 0.1; // Slower than scenery
+        update(effectiveSpeed) {
+            this.x -= this.speed * effectiveSpeed * 0.1; // Slower than scenery
             if (this.x + this.size < 0) {
                 this.reset();
             }
@@ -665,33 +723,6 @@
     const coinPreviewCtx = coinPreviewCanvas.getContext('2d');
     coinPreviewCtx.imageSmoothingEnabled = false;
 
-    // Virtual resolution
-    const VIRTUAL_WIDTH = 320; 
-    const VIRTUAL_HEIGHT = 568; 
-
-    const COLORS = {
-        background: '#111629',
-        pipes: '#0372ff',
-        pipeOutline: '#000000',
-        pipeHighlight: '#4d9aff',
-        coin: '#00fa9a',
-        hippoSkin: '#8ea8c3',
-        hippoDark: '#6b8299',
-        bgCityRear: '#0d1120', 
-        bgCityFront: '#161d36', 
-        bgPark: '#1a2639' 
-    };
-
-    let GAME = {
-        state: 'start',
-        score: 0,
-        frame: 0,
-        baseSpeed: 1.5,
-        speed: 1.5,
-        gravity: 0.18, 
-        jumpStrength: -4.0 
-    };
-
     function resize() {
         canvas.width = VIRTUAL_WIDTH;
         canvas.height = VIRTUAL_HEIGHT;
@@ -722,11 +753,8 @@
             else height = Math.random() * 30 + 20; 
             this.elements.push({ x, width, height });
         }
-        update() {
-            // Speed adjusted to be 20% of game speed for background layers, 
-            // but always run even when GAME.speed is 0 (start state)
-            const baseSpeed = 1.5; 
-            const moveSpeed = (GAME.speed > 0 ? GAME.speed : baseSpeed) * this.speedFactor;
+        update(effectiveSpeed) {
+            const moveSpeed = (effectiveSpeed * this.speedFactor);
             
             this.elements.forEach(el => el.x -= moveSpeed);
             if (this.elements[0].x + this.elements[0].width < 0) this.elements.shift();
@@ -1064,13 +1092,17 @@
     function gameLoop() {
         ctx.fillStyle = COLORS.background;
         ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+        
+        // Determine the speed for background animations
+        // Use baseSpeed (1.5) for start/gameover states to keep animation running
+        const effectiveSpeed = GAME.state === 'playing' ? GAME.speed : GAME.baseSpeed;
 
         // --- BACKGROUND LOGIC FIX ---
         // Always update and draw background layers (city/park) and clouds for animation behind the menu
-        cityLayer.update();
-        cityLayerFront.update();
-        parkLayer.update();
-        clouds.forEach(c => c.update()); 
+        cityLayer.update(effectiveSpeed);
+        cityLayerFront.update(effectiveSpeed);
+        parkLayer.update(effectiveSpeed);
+        clouds.forEach(c => c.update(effectiveSpeed)); 
         
         cityLayer.draw();
         cityLayerFront.draw();
