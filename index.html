@@ -480,6 +480,10 @@
     
     // FIX: Disable image smoothing for crisp pixel art scaling
     ctx.imageSmoothingEnabled = false;
+    // Add prefix checks for wider compatibility (Chrome, Safari, Firefox, IE)
+    if (typeof ctx.mozImageSmoothingEnabled !== 'undefined') ctx.mozImageSmoothingEnabled = false;
+    if (typeof ctx.webkitImageSmoothingEnabled !== 'undefined') ctx.webkitImageSmoothingEnabled = false;
+    if (typeof ctx.msImageSmoothingEnabled !== 'undefined') ctx.msImageSmoothingEnabled = false;
 
     // --- ASSETS LOADING ---
     const hippoSprite = new Image();
