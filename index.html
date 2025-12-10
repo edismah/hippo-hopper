@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hippo Hopper</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050813;
+            overflow: hidden;
+            font-family: 'Press Start 2P', cursive;
+            touch-action: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 56.25vh; /* 9:16 aspect ratio */
+            background-color: #111629;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        @media (max-aspect-ratio: 9/16) {
+            #game-container {
+                max-width: 100%;
+                height: 100%;
+            }
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated; 
+            image-rendering: crisp-edges;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            z-index: 10;
+        }
+
+        .score-display {
+            position: absolute;
+            top: 5%;
+            font-size: 32px;
+            color: white;
+            text-shadow: 4px 4px 0 #000;
+            z-index: 10;
+        }
+
+        .promo-link {
+            position: absolute;
+            top: 11%;
+            font-size: 10px;
+            color: #0372ff;
+            text-decoration: none;
+            z-index: 10;
+            pointer-events: auto;
+            text-shadow: 1px 1px 0 #000;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        .promo-link:hover {
+            opacity: 1;
+            text-decoration: underline;
+            color: #4d9aff;
+        }
+
+        .interactive-layer {
+            pointer-events: auto;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .menu-scene {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            width: 90%;
+            max-width: 320px;
+        }
+
+        /* Menu Hippo Image */
+        .menu-hippo-img {
+            width: 100px; /* Adjust size as needed */
+            height: auto;
+            margin-bottom: 10px;
+            image-rendering: pixelated;
+            filter: drop-shadow(4px 4px 0 #000);
+            /* animation: bounce 2s infinite ease-in-out; */
+        }
+
+        .title-box {
+            background-color: transparent; 
+            border: none;
+            padding: 10px 0 25px 0;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Independent Character Animation */
+        @keyframes charColorCycle {
+            0%, 100% { color: #0372ff; transform: translateY(0); }
+            25% { color: #4d9aff; transform: translateY(-4px); }
+            50% { color: #00c3ff; transform: translateY(0); }
+            75% { color: #4d9aff; transform: translateY(0); }
+        }
+
+        .title-box h1 {
+            font-size: 40px; /* Much larger */
+            line-height: 1.2;
+            text-shadow: 5px 5px 0 #000;
+            margin: 0;
+            text-transform: uppercase;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .char {
+            display: inline-block;
+            animation: charColorCycle 0.8s infinite;
+        }
+        
+        /* Staggered delays for wave effect */
+        .char:nth-child(1) { animation-delay: 0.0s; }
+        .char:nth-child(2) { animation-delay: 0.1s; }
+        .char:nth-child(3) { animation-delay: 0.2s; }
+        .char:nth-child(4) { animation-delay: 0.3s; }
+        .char:nth-child(5) { animation-delay: 0.4s; }
+        /* Space is child 6 */
+        .char:nth-child(7) { animation-delay: 0.5s; }
+        .char:nth-child(8) { animation-delay: 0.6s; }
+        .char:nth-child(9) { animation-delay: 0.7s; }
+        .char:nth-child(10) { animation-delay: 0.8s; }
+        .char:nth-child(11) { animation-delay: 0.9s; }
+        .char:nth-child(12) { animation-delay: 1.0s; }
+
+        .menu-buttons {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 80%;
+            z-index: 5;
+        }
+
+        .btn {
+            background: #0372ff;
+            color: white;
+            border: 4px solid #000;
+            padding: 15px 0;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #004cb3;
+            text-transform: uppercase;
+            text-align: center;
+            width: 100%;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 #004cb3;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+            box-shadow: 0 6px 0 #999;
+        }
+        .btn-secondary:active {
+            box-shadow: 0 0 0 #999;
+        }
+
+        .game-over-box {
+            background: rgba(17, 22, 41, 0.95);
+            border: 4px solid #0372ff;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 0 rgba(0,0,0,0.5);
+            text-align: center;
+            max-width: 80%;
+        }
+
+        .highscore-list {
+            background: rgba(17, 22, 41, 0.98);
+            border: 4px solid #00fa9a;
+            padding: 20px;
+            border-radius: 15px;
+            width: 80%;
+            text-align: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            z-index: 50;
+        }
+        .highscore-list h2 {
+            color: #00fa9a;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: #fff;
+            border-bottom: 1px dashed #333;
+            padding-bottom: 5px;
+        }
+
+        #countdown-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(17, 22, 41, 0.4);
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .countdown-number {
+            font-size: 60px;
+            color: white;
+            text-shadow: 6px 6px 0 #0372ff;
+            animation: pulse 0.5s infinite alternate;
+        }
+
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="ui-layer">
+            <div class="score-display" id="score">0</div>
+            <a href="https://resupply.fi" target="_blank" class="promo-link">resupply.fi</a>
+
+            <div id="start-screen" class="interactive-layer">
+                <div class="menu-scene">
+                    
+                    <!-- Added Placeholder Image -->
+                    <img src="assets/hippo.png" class="menu-hippo-img" alt="Hippo">
+
+                    <div class="title-box">
+                        <!-- Animated Title by Character -->
+                        <h1>
+                            <span class="char">H</span><span class="char">I</span><span class="char">P</span><span class="char">P</span><span class="char">O</span>
+                            <div style="flex-basis: 100%; height: 5px;"></div> <!-- Force break -->
+                            <span class="char">H</span><span class="char">O</span><span class="char">P</span><span class="char">P</span><span class="char">E</span><span class="char">R</span>
+                        </h1>
+                    </div>
+                    
+                    <div class="menu-buttons">
+                        <div style="text-align:center; margin-bottom: 10px;">
+                            <p style="color:#00fa9a; font-size: 10px;">Collect reUSD +5</p>
+                        </div>
+                        <button class="btn" id="start-btn">PLAY</button>
+                        <button class="btn btn-secondary" id="highscore-btn">HIGHSCORES</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="game-over-screen" class="interactive-layer hidden">
+                <div class="game-over-box">
+                    <h1 style="color: #ff4444; font-size: 24px; margin-bottom: 20px;">Game Over</h1>
+                    <div style="font-size: 14px; margin-bottom: 20px;">
+                        SCORE: <span id="final-score" style="color:white">0</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap: 10px;">
+                        <button class="btn" id="restart-btn">PLAY AGAIN</button>
+                        <button class="btn btn-secondary" id="menu-btn">MENU</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="highscore-modal" class="highscore-list">
+                <h2>TOP 5 SCORES</h2>
+                <div id="highscore-entries"></div>
+                <button class="btn" style="margin-top: 20px;" id="close-highscore">CLOSE</button>
+            </div>
+        </div>
+
+        <div id="countdown-layer" class="hidden">
+            <div class="countdown-number" id="countdown-val">3</div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // --- ASSETS LOADING ---
+    const hippoSprite = new Image();
+    hippoSprite.src = 'assets/hippo.png'; // Expecting 400x400
+
+    const coinSprite = new Image();
+    coinSprite.src = 'assets/reusd.png'; // Expecting 400x100 (4 frames of 100x100)
+
+    // Virtual resolution
+    const VIRTUAL_WIDTH = 320; 
+    const VIRTUAL_HEIGHT = 568; 
+
+    const COLORS = {
+        background: '#111629',
+        pipes: '#0372ff',
+        pipeOutline: '#000000',
+        pipeHighlight: '#4d9aff',
+        coin: '#00fa9a',
+        hippoSkin: '#8ea8c3',
+        hippoDark: '#6b8299',
+        bgCityRear: '#0d1120', 
+        bgCityFront: '#161d36', 
+        bgPark: '#1a2639' 
+    };
+
+    let GAME = {
+        state: 'start',
+        score: 0,
+        frame: 0,
+        baseSpeed: 1.5,
+        speed: 1.5,
+        gravity: 0.18, // Reduced from 0.22 for floatier feel
+        jumpStrength: -4.0 // Reduced from -4.8 to balance lower gravity
+    };
+
+    function getLeaderboard() {
+        const data = localStorage.getItem('hippoLeaderboard');
+        return data ? JSON.parse(data) : [];
+    }
+
+    function saveScore(score) {
+        if (score === 0) return;
+        let board = getLeaderboard();
+        const date = new Date().toLocaleDateString(undefined, {month:'numeric', day:'numeric'});
+        board.push({ score: score, date: date });
+        board.sort((a, b) => b.score - a.score);
+        board = board.slice(0, 5);
+        localStorage.setItem('hippoLeaderboard', JSON.stringify(board));
+    }
+
+    function showHighscores() {
+        const board = getLeaderboard();
+        const container = document.getElementById('highscore-entries');
+        container.innerHTML = '';
+        if (board.length === 0) {
+            container.innerHTML = '<p style="font-size:10px; color:#aaa;">No scores yet!</p>';
+        } else {
+            board.forEach((entry, index) => {
+                const row = document.createElement('div');
+                row.className = 'score-row';
+                row.innerHTML = `<span>#${index+1} ${entry.date}</span> <span>${entry.score}</span>`;
+                container.appendChild(row);
+            });
+        }
+        document.getElementById('highscore-modal').style.display = 'block';
+    }
+
+    function resize() {
+        canvas.width = VIRTUAL_WIDTH;
+        canvas.height = VIRTUAL_HEIGHT;
+        if (GAME.state === 'start' && typeof hippo !== 'undefined') {
+             hippo.y = VIRTUAL_HEIGHT / 2;
+        }
+    }
+
+    class SceneryLayer {
+        constructor(speedFactor, color, type) {
+            this.speedFactor = speedFactor;
+            this.color = color;
+            this.type = type; 
+            this.elements = [];
+            this.generateInitial();
+        }
+        generateInitial() {
+            let currentX = 0;
+            while(currentX < VIRTUAL_WIDTH + 100) {
+                this.addSegment(currentX);
+                currentX += this.elements[this.elements.length-1].width;
+            }
+        }
+        addSegment(x) {
+            const width = Math.random() * 30 + 20;
+            let height;
+            if (this.type === 'city') height = Math.random() * 100 + 50; 
+            else height = Math.random() * 30 + 20; 
+            this.elements.push({ x, width, height });
+        }
+        update() {
+            const moveSpeed = (GAME.speed * this.speedFactor);
+            this.elements.forEach(el => el.x -= moveSpeed);
+            if (this.elements[0].x + this.elements[0].width < 0) this.elements.shift();
+            const lastEl = this.elements[this.elements.length - 1];
+            if (lastEl.x + lastEl.width < VIRTUAL_WIDTH + 20) {
+                this.addSegment(lastEl.x + lastEl.width);
+            }
+        }
+        draw() {
+            ctx.fillStyle = this.color;
+            this.elements.forEach(el => {
+                const y = VIRTUAL_HEIGHT - el.height;
+                if (this.type === 'city') {
+                    ctx.fillRect(Math.floor(el.x), Math.floor(y), Math.ceil(el.width), Math.ceil(el.height));
+                    if (Math.random() > 0.5) {
+                        ctx.fillStyle = '#1c2442';
+                        ctx.fillRect(Math.floor(el.x) + 4, Math.floor(y) + 10, 4, 4);
+                        ctx.fillRect(Math.floor(el.x) + 12, Math.floor(y) + 20, 4, 4);
+                        ctx.fillStyle = this.color; 
+                    }
+                } else {
+                    ctx.beginPath();
+                    ctx.fillRect(Math.floor(el.x), Math.floor(y), Math.ceil(el.width), Math.ceil(el.height));
+                    ctx.fillRect(Math.floor(el.x + 2), Math.floor(y - 4), Math.ceil(el.width - 4), 4);
+                }
+            });
+        }
+    }
+
+    const cityLayer = new SceneryLayer(0.2, COLORS.bgCityRear, 'city');
+    const cityLayerFront = new SceneryLayer(0.4, COLORS.bgCityFront, 'city');
+    const parkLayer = new SceneryLayer(0.7, COLORS.bgPark, 'park');
+
+    // --- ENTITIES ---
+
+    const hippo = {
+        x: 60, y: 150, width: 24, height: 20, velocity: 0, rotation: 0,
+        reset: function() {
+            this.x = VIRTUAL_WIDTH * 0.25;
+            this.y = VIRTUAL_HEIGHT / 2;
+            this.velocity = 0;
+            this.rotation = 0;
+        },
+        flap: function() { this.velocity = GAME.jumpStrength; },
+        update: function() {
+            this.velocity += GAME.gravity;
+            this.y += this.velocity;
+            if (this.velocity < 0) this.rotation = -15;
+            else if (this.velocity > 1) this.rotation = 15;
+            else this.rotation = 0;
+
+            if (this.y + this.height/2 >= VIRTUAL_HEIGHT) {
+                this.y = VIRTUAL_HEIGHT - this.height/2;
+                gameOver();
+            }
+            if (this.y - this.height/2 <= 0) {
+                this.y = this.height/2;
+                this.velocity = 0;
+            }
+        },
+        draw: function() {
+            ctx.save();
+            ctx.translate(Math.floor(this.x), Math.floor(this.y));
+            ctx.rotate(this.rotation * Math.PI / 180);
+
+            if (hippoSprite.complete && hippoSprite.naturalWidth !== 0) {
+                ctx.drawImage(hippoSprite, -17, -17, 34, 34);
+            } else {
+                ctx.fillStyle = COLORS.hippoSkin;
+                ctx.fillRect(-12, -8, 24, 16);
+                ctx.fillStyle = COLORS.background; 
+                ctx.fillRect(-12, -8, 2, 2); ctx.fillRect(10, -8, 2, 2);
+                ctx.fillRect(-12, 6, 2, 2);  ctx.fillRect(10, 6, 2, 2);
+                ctx.fillStyle = COLORS.hippoDark;
+                ctx.fillRect(6, -2, 10, 10);
+                ctx.fillStyle = 'white';
+                ctx.fillRect(-2, -6, 4, 4);
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0, -5, 2, 2);
+                ctx.fillStyle = COLORS.hippoSkin;
+                ctx.fillRect(-8, -11, 4, 3);
+            }
+            ctx.restore();
+        }
+    };
+
+    let pipes = [];
+    const pipeWidth = 44; 
+
+    class Pipe {
+        constructor() {
+            this.x = VIRTUAL_WIDTH;
+            this.width = pipeWidth;
+            
+            // --- UPDATED DIFFICULTY ---
+            // Much slower progression
+            const startGap = 230; 
+            const minGap = 150;
+            
+            // Don't shrink gap until after score 15
+            let scoreFactor = Math.max(0, GAME.score - 15);
+            let currentGap = Math.max(minGap, startGap - (scoreFactor * 1.5));
+            this.gap = Math.floor(currentGap);
+
+            let variance = 0;
+            // Delay variance until score 10
+            if (GAME.score > 10) {
+                variance = Math.min(160, (GAME.score - 10) * 5); // Slower variance ramping
+            }
+
+            const centerPos = VIRTUAL_HEIGHT / 2;
+            const randomShift = (Math.random() * variance) - (variance / 2);
+            const pipeCenterY = centerPos + randomShift;
+            
+            this.topHeight = Math.floor(pipeCenterY - (currentGap / 2));
+            
+            const minPipeLen = 30;
+            if (this.topHeight < minPipeLen) this.topHeight = minPipeLen;
+            if (this.topHeight > VIRTUAL_HEIGHT - minPipeLen - currentGap) {
+                this.topHeight = VIRTUAL_HEIGHT - minPipeLen - currentGap;
+            }
+
+            this.passed = false;
+        }
+
+        update() { this.x -= GAME.speed; }
+
+        draw() {
+            const drawBlock = (x, y, w, h) => {
+                ctx.fillStyle = COLORS.pipes;
+                ctx.fillRect(x, y, w, h);
+                ctx.fillStyle = COLORS.pipeHighlight;
+                ctx.fillRect(x, y, 4, h); 
+                ctx.fillRect(x, y, w, 4); 
+                ctx.strokeStyle = COLORS.pipeOutline;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, w, h);
+            };
+            const x = Math.floor(this.x);
+            drawBlock(x, 0, this.width, this.topHeight);
+            drawBlock(x - 2, this.topHeight - 15, this.width + 4, 15);
+            const bottomY = this.topHeight + this.gap;
+            const bottomH = VIRTUAL_HEIGHT - bottomY;
+            drawBlock(x, bottomY, this.width, bottomH);
+            drawBlock(x - 2, bottomY, this.width + 4, 15);
+        }
+    }
+
+    let coins = [];
+
+    class Coin {
+        constructor(pipe) {
+            this.x = pipe.x + pipe.width / 2;
+            this.y = pipe.topHeight + pipe.gap / 2;
+            this.size = 12;
+            this.collected = false;
+            this.floatTimer = Math.random() * 10;
+            
+            // Animation Props
+            this.frameX = 0;
+            this.totalFrames = 4;
+            // Frame update speed throttling
+            this.frameUpdateCounter = 0;
+        }
+        update() { 
+            this.x -= GAME.speed; 
+            this.floatTimer += 0.1;
+            
+            // Animate coin
+            this.frameUpdateCounter++;
+            if (this.frameUpdateCounter > 8) { // Update frame every ~8 game ticks
+                this.frameX = (this.frameX + 1) % this.totalFrames;
+                this.frameUpdateCounter = 0;
+            }
+        }
+        draw() {
+            if (this.collected) return;
+            const floatY = Math.sin(this.floatTimer) * 3;
+            const cx = Math.floor(this.x - this.size/2);
+            const cy = Math.floor(this.y - this.size/2 + floatY);
+
+            // Check if external coin image is loaded
+            if (coinSprite.complete && coinSprite.naturalWidth !== 0) {
+                const drawSize = 24; // Draw slightly larger for detail
+                
+                // Source: 400x100 sheet (4 frames of 100x100)
+                // sx = frameX * 100
+                // sy = 0
+                // sw = 100
+                // sh = 100
+                const sSize = 100;
+                
+                ctx.drawImage(
+                    coinSprite, 
+                    this.frameX * sSize, 0, sSize, sSize, // Source
+                    cx - drawSize/2 + this.size/2, cy - drawSize/2 + this.size/2, drawSize, drawSize // Dest
+                );
+            } else {
+                // FALLBACK DRAWING
+                ctx.fillStyle = COLORS.coin;
+                ctx.fillRect(cx, cy, this.size, this.size);
+                ctx.strokeStyle = '#008f58';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(cx, cy, this.size, this.size);
+                ctx.fillStyle = 'white';
+                ctx.fillRect(cx + 2, cy + 2, 2, 2);
+            }
+        }
+    }
+
+    function initGame() {
+        hippo.reset();
+        pipes = [];
+        coins = [];
+        GAME.score = 0;
+        GAME.frame = 0;
+        GAME.speed = GAME.baseSpeed;
+        updateScore(0);
+        spawnPipe();
+    }
+
+    function spawnPipe() {
+        const p = new Pipe();
+        pipes.push(p);
+        // INCREASED COIN FREQUENCY: > 0.2 means 80% chance
+        if (Math.random() > 0.2) coins.push(new Coin(p));
+    }
+
+    function updateScore(newScore) {
+        GAME.score = newScore;
+        document.getElementById('score').innerText = GAME.score;
+        
+        // --- SPEED LOGIC UPDATED ---
+        // Warmup until 20 points
+        if (GAME.score > 20) {
+             const pointsPastWarmup = GAME.score - 20;
+             // Slower acceleration 0.015
+             GAME.speed = Math.min(3.0, GAME.baseSpeed + (pointsPastWarmup * 0.015));
+        } else {
+             GAME.speed = GAME.baseSpeed;
+        }
+    }
+
+    function checkCollisions() {
+        const hitboxX = hippo.x - 10;
+        const hitboxY = hippo.y - 8;
+        const hitboxW = 20;
+        const hitboxH = 16;
+
+        pipes.forEach(p => {
+            if (hitboxX + hitboxW > p.x && hitboxX < p.x + p.width) {
+                if (hitboxY < p.topHeight || (hitboxY + hitboxH) > (p.topHeight + p.gap)) {
+                    gameOver();
+                }
+            }
+        });
+
+        coins.forEach(c => {
+            if (c.collected) return;
+            const dx = hippo.x - c.x;
+            const dy = hippo.y - c.y; 
+            if (Math.sqrt(dx*dx + dy*dy) < 25) {
+                c.collected = true;
+                updateScore(GAME.score + 5);
+            }
+        });
+    }
+
+    function gameOver() {
+        GAME.state = 'gameover';
+        saveScore(GAME.score);
+        document.getElementById('final-score').innerText = GAME.score;
+        document.getElementById('game-over-screen').classList.remove('hidden');
+        document.getElementById('score').classList.add('hidden'); 
+        document.querySelector('.promo-link').classList.add('hidden'); 
+    }
+
+    function returnToMenu() {
+        GAME.state = 'start';
+        document.getElementById('game-over-screen').classList.add('hidden');
+        document.getElementById('start-screen').classList.remove('hidden');
+        document.getElementById('score').classList.remove('hidden'); 
+        document.querySelector('.promo-link').classList.remove('hidden'); 
+        updateScore(0);
+        hippo.reset();
+        pipes = [];
+        coins = [];
+    }
+
+    function startCountdown() {
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('game-over-screen').classList.add('hidden');
+        document.getElementById('highscore-modal').style.display = 'none';
+        document.getElementById('countdown-layer').classList.remove('hidden');
+        document.getElementById('score').classList.remove('hidden');
+        document.querySelector('.promo-link').classList.remove('hidden');
+        
+        initGame(); 
+        
+        GAME.state = 'countdown';
+        let count = 3;
+        const countEl = document.getElementById('countdown-val');
+        countEl.innerText = count;
+
+        const interval = setInterval(() => {
+            count--;
+            if (count > 0) {
+                countEl.innerText = count;
+            } else {
+                clearInterval(interval);
+                document.getElementById('countdown-layer').classList.add('hidden');
+                GAME.state = 'playing';
+            }
+        }, 1000);
+    }
+
+    function gameLoop() {
+        ctx.fillStyle = COLORS.background;
+        ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+
+        if (GAME.state === 'playing') {
+            cityLayer.update();
+            cityLayerFront.update();
+            parkLayer.update();
+        }
+        cityLayer.draw();
+        cityLayerFront.draw();
+        parkLayer.draw();
+
+        if (GAME.state === 'playing') {
+            GAME.frame++;
+            const currentPipeDistance = 180;
+            if (pipes.length === 0 || (VIRTUAL_WIDTH - pipes[pipes.length-1].x) >= currentPipeDistance) {
+                 spawnPipe();
+            }
+
+            pipes.forEach(p => p.update());
+            coins.forEach(c => c.update());
+            hippo.update();
+
+            pipes = pipes.filter(p => p.x + p.width > -50);
+            coins = coins.filter(c => c.x + 20 > -50);
+
+            pipes.forEach(p => {
+                if (!p.passed && p.x + p.width < hippo.x) {
+                    p.passed = true;
+                    updateScore(GAME.score + 1);
+                }
+            });
+
+            checkCollisions();
+        }
+
+        pipes.forEach(p => p.draw());
+        coins.forEach(c => c.draw());
+        if (GAME.state !== 'start') hippo.draw(); 
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    function inputAction(e) {
+        if (e.type === 'keydown' && e.code !== 'Space' && e.code !== 'ArrowUp') return;
+        if (e.type === 'keydown') e.preventDefault(); 
+        if (GAME.state === 'playing') hippo.flap();
+    }
+
+    window.addEventListener('keydown', inputAction);
+    ['mousedown', 'touchstart'].forEach(evt => {
+        canvas.addEventListener(evt, (e) => {
+            if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') {
+                e.preventDefault(); 
+                if(GAME.state === 'playing') hippo.flap();
+            }
+        }, {passive: false});
+    });
+
+    document.getElementById('start-btn').addEventListener('click', startCountdown);
+    document.getElementById('restart-btn').addEventListener('click', startCountdown);
+    document.getElementById('menu-btn').addEventListener('click', returnToMenu);
+    
+    document.getElementById('highscore-btn').addEventListener('click', showHighscores);
+    document.getElementById('close-highscore').addEventListener('click', () => {
+        document.getElementById('highscore-modal').style.display = 'none';
+    });
+
+    resize();
+    gameLoop();
+
+</script>
+</body>
+</html>
