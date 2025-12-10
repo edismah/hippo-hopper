@@ -106,14 +106,19 @@
             max-width: 320px;
         }
 
-        /* Menu Hippo Image */
+        /* Menu Hippo Image Animation */
+        @keyframes menuJump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
         .menu-hippo-img {
-            width: 100px; /* Adjust size as needed */
+            width: 100px;
             height: auto;
             margin-bottom: 10px;
             image-rendering: pixelated;
             filter: drop-shadow(4px 4px 0 #000);
-            /* animation: bounce 2s infinite ease-in-out; */
+            animation: menuJump 1.5s infinite ease-in-out;
         }
 
         .title-box {
@@ -122,12 +127,11 @@
             padding: 10px 0 25px 0;
             width: 100%;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             position: relative;
             z-index: 2;
         }
 
-        /* Independent Character Animation */
         @keyframes charColorCycle {
             0%, 100% { color: #0372ff; transform: translateY(0); }
             25% { color: #4d9aff; transform: translateY(-4px); }
@@ -136,15 +140,17 @@
         }
 
         .title-box h1 {
-            font-size: 40px; /* Much larger */
-            line-height: 1.2;
-            text-shadow: 5px 5px 0 #000;
+            font-size: 44px; /* Increased size */
+            line-height: 1.1;
+            text-shadow: 6px 6px 0 #000;
             margin: 0;
             text-transform: uppercase;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 2px;
+            width: 90%; /* Ensure it wraps correctly within container */
+            margin: 0 auto;
         }
 
         .char {
@@ -152,13 +158,12 @@
             animation: charColorCycle 0.8s infinite;
         }
         
-        /* Staggered delays for wave effect */
         .char:nth-child(1) { animation-delay: 0.0s; }
         .char:nth-child(2) { animation-delay: 0.1s; }
         .char:nth-child(3) { animation-delay: 0.2s; }
         .char:nth-child(4) { animation-delay: 0.3s; }
         .char:nth-child(5) { animation-delay: 0.4s; }
-        /* Space is child 6 */
+        /* Break is child 6 */
         .char:nth-child(7) { animation-delay: 0.5s; }
         .char:nth-child(8) { animation-delay: 0.6s; }
         .char:nth-child(9) { animation-delay: 0.7s; }
@@ -167,7 +172,7 @@
         .char:nth-child(12) { animation-delay: 1.0s; }
 
         .menu-buttons {
-            margin-top: 20px;
+            margin-top: 15px;
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -179,7 +184,7 @@
             background: #0372ff;
             color: white;
             border: 4px solid #000;
-            padding: 15px 0;
+            padding: 15px 10px;
             font-family: 'Press Start 2P', cursive;
             font-size: 14px;
             border-radius: 25px;
@@ -189,6 +194,10 @@
             text-align: center;
             width: 100%;
             transition: transform 0.1s, box-shadow 0.1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
         }
 
         .btn:active {
@@ -203,6 +212,13 @@
         }
         .btn-secondary:active {
             box-shadow: 0 0 0 #999;
+        }
+
+        .btn-icon {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+            image-rendering: pixelated;
         }
 
         .game-over-box {
@@ -281,14 +297,12 @@
             <div id="start-screen" class="interactive-layer">
                 <div class="menu-scene">
                     
-                    <!-- Added Placeholder Image -->
                     <img src="assets/hippo.png" class="menu-hippo-img" alt="Hippo">
 
                     <div class="title-box">
-                        <!-- Animated Title by Character -->
                         <h1>
                             <span class="char">H</span><span class="char">I</span><span class="char">P</span><span class="char">P</span><span class="char">O</span>
-                            <div style="flex-basis: 100%; height: 5px;"></div> <!-- Force break -->
+                            <div style="flex-basis: 100%; height: 5px;"></div>
                             <span class="char">H</span><span class="char">O</span><span class="char">P</span><span class="char">P</span><span class="char">E</span><span class="char">R</span>
                         </h1>
                     </div>
@@ -297,8 +311,14 @@
                         <div style="text-align:center; margin-bottom: 10px;">
                             <p style="color:#00fa9a; font-size: 10px;">Collect reUSD +5</p>
                         </div>
-                        <button class="btn" id="start-btn">PLAY</button>
-                        <button class="btn btn-secondary" id="highscore-btn">HIGHSCORES</button>
+                        <button class="btn" id="start-btn">
+                            <img src="assets/hippo.png" class="btn-icon" alt="">
+                            PLAY
+                        </button>
+                        <button class="btn btn-secondary" id="highscore-btn">
+                            <img src="assets/podium.png" class="btn-icon" alt="" onerror="this.style.display='none'">
+                            HIGHSCORES
+                        </button>
                     </div>
                 </div>
             </div>
@@ -339,7 +359,8 @@
     hippoSprite.src = 'assets/hippo.png'; // Expecting 400x400
 
     const coinSprite = new Image();
-    coinSprite.src = 'assets/reusd.png'; // Expecting 400x100 (4 frames of 100x100)
+    // CHANGED: Now expecting 600x100 for 6 frames
+    coinSprite.src = 'assets/reusd.png'; 
 
     // Virtual resolution
     const VIRTUAL_WIDTH = 320; 
@@ -364,8 +385,8 @@
         frame: 0,
         baseSpeed: 1.5,
         speed: 1.5,
-        gravity: 0.18, // Reduced from 0.22 for floatier feel
-        jumpStrength: -4.0 // Reduced from -4.8 to balance lower gravity
+        gravity: 0.18, 
+        jumpStrength: -4.0 
     };
 
     function getLeaderboard() {
@@ -525,20 +546,16 @@
             this.x = VIRTUAL_WIDTH;
             this.width = pipeWidth;
             
-            // --- UPDATED DIFFICULTY ---
-            // Much slower progression
             const startGap = 230; 
             const minGap = 150;
             
-            // Don't shrink gap until after score 15
             let scoreFactor = Math.max(0, GAME.score - 15);
             let currentGap = Math.max(minGap, startGap - (scoreFactor * 1.5));
             this.gap = Math.floor(currentGap);
 
             let variance = 0;
-            // Delay variance until score 10
             if (GAME.score > 10) {
-                variance = Math.min(160, (GAME.score - 10) * 5); // Slower variance ramping
+                variance = Math.min(160, (GAME.score - 10) * 5); 
             }
 
             const centerPos = VIRTUAL_HEIGHT / 2;
@@ -591,8 +608,8 @@
             
             // Animation Props
             this.frameX = 0;
-            this.totalFrames = 4;
-            // Frame update speed throttling
+            // CHANGED: 6 frames now
+            this.totalFrames = 6;
             this.frameUpdateCounter = 0;
         }
         update() { 
@@ -601,7 +618,7 @@
             
             // Animate coin
             this.frameUpdateCounter++;
-            if (this.frameUpdateCounter > 8) { // Update frame every ~8 game ticks
+            if (this.frameUpdateCounter > 8) { 
                 this.frameX = (this.frameX + 1) % this.totalFrames;
                 this.frameUpdateCounter = 0;
             }
@@ -612,24 +629,18 @@
             const cx = Math.floor(this.x - this.size/2);
             const cy = Math.floor(this.y - this.size/2 + floatY);
 
-            // Check if external coin image is loaded
             if (coinSprite.complete && coinSprite.naturalWidth !== 0) {
-                const drawSize = 24; // Draw slightly larger for detail
+                const drawSize = 24; 
                 
-                // Source: 400x100 sheet (4 frames of 100x100)
-                // sx = frameX * 100
-                // sy = 0
-                // sw = 100
-                // sh = 100
+                // Source: 600x100 sheet (6 frames of 100x100)
                 const sSize = 100;
                 
                 ctx.drawImage(
                     coinSprite, 
-                    this.frameX * sSize, 0, sSize, sSize, // Source
-                    cx - drawSize/2 + this.size/2, cy - drawSize/2 + this.size/2, drawSize, drawSize // Dest
+                    this.frameX * sSize, 0, sSize, sSize, 
+                    cx - drawSize/2 + this.size/2, cy - drawSize/2 + this.size/2, drawSize, drawSize
                 );
             } else {
-                // FALLBACK DRAWING
                 ctx.fillStyle = COLORS.coin;
                 ctx.fillRect(cx, cy, this.size, this.size);
                 ctx.strokeStyle = '#008f58';
@@ -655,7 +666,6 @@
     function spawnPipe() {
         const p = new Pipe();
         pipes.push(p);
-        // INCREASED COIN FREQUENCY: > 0.2 means 80% chance
         if (Math.random() > 0.2) coins.push(new Coin(p));
     }
 
@@ -663,11 +673,8 @@
         GAME.score = newScore;
         document.getElementById('score').innerText = GAME.score;
         
-        // --- SPEED LOGIC UPDATED ---
-        // Warmup until 20 points
         if (GAME.score > 20) {
              const pointsPastWarmup = GAME.score - 20;
-             // Slower acceleration 0.015
              GAME.speed = Math.min(3.0, GAME.baseSpeed + (pointsPastWarmup * 0.015));
         } else {
              GAME.speed = GAME.baseSpeed;
