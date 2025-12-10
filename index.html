@@ -140,7 +140,7 @@
         }
 
         .title-box h1 {
-            font-size: 60px; /* INCREASED SIZE to 60px */
+            font-size: 55px; /* DECREASED SIZE to 55px */
             line-height: 1.1;
             text-shadow: 6px 6px 0 #000;
             margin: 0;
@@ -721,15 +721,15 @@
             
             // Source frame size is 200px (1200 / 6)
             const sSize = 200;
-            // Draw size is increased to 48px to look less pixelated given the higher resolution source
-            const drawSize = 48; 
+            // Draw size reset to 24px (original desired size)
+            const drawSize = 24; 
 
             if (coinSprite.complete && coinSprite.naturalWidth !== 0) {
                 
                 ctx.drawImage(
                     coinSprite, 
                     this.frameX * sSize, 0, sSize, sSize, // Source: Use sSize for source width/height (200x200 crop)
-                    cx - drawSize/2 + this.size/2, cy - drawSize/2 + this.size/2, drawSize, drawSize // Destination: Draw at new scaled size
+                    cx - drawSize/2 + this.size/2, cy - drawSize/2 + this.size/2, drawSize, drawSize // Destination: Draw at original scaled size (24x24)
                 );
             } else {
                 ctx.fillStyle = COLORS.coin;
