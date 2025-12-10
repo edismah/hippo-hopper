@@ -231,6 +231,20 @@
             max-width: 80%;
         }
 
+        /* New Input Styles */
+        .name-input {
+            background: #050813;
+            border: 2px solid #0372ff;
+            color: white;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            padding: 10px;
+            width: 150px;
+            text-align: center;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
         .highscore-list {
             background: rgba(17, 22, 41, 0.98);
             border: 4px solid #00fa9a;
@@ -254,10 +268,11 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 10px;
-            font-size: 12px;
+            font-size: 10px; /* Smaller font for list */
             color: #fff;
             border-bottom: 1px dashed #333;
             padding-bottom: 5px;
+            text-transform: uppercase;
         }
 
         #countdown-layer {
@@ -325,11 +340,16 @@
 
             <div id="game-over-screen" class="interactive-layer hidden">
                 <div class="game-over-box">
-                    <h1 style="color: #ff4444; font-size: 24px; margin-bottom: 20px;">Game Over</h1>
+                    <h1 style="color: #ff4444; font-size: 24px; margin-bottom: 10px;">Game Over</h1>
                     <div style="font-size: 14px; margin-bottom: 20px;">
                         SCORE: <span id="final-score" style="color:white">0</span>
                     </div>
+                    
+                    <!-- NEW: Name Input -->
+                    <input type="text" id="name-input" class="name-input" maxlength="5" placeholder="NAME">
+                    
                     <div style="display:flex; flex-direction:column; gap: 10px;">
+                        <button class="btn" id="submit-score-btn" style="background-color: #00fa9a; color: #000; border-color: #008f58;">SUBMIT SCORE</button>
                         <button class="btn" id="restart-btn">PLAY AGAIN</button>
                         <button class="btn btn-secondary" id="menu-btn">MENU</button>
                     </div>
@@ -337,8 +357,8 @@
             </div>
 
             <div id="highscore-modal" class="highscore-list">
-                <h2>TOP 5 SCORES</h2>
-                <div id="highscore-entries"></div>
+                <h2>GLOBAL TOP 10</h2>
+                <div id="highscore-entries">Loading...</div>
                 <button class="btn" style="margin-top: 20px;" id="close-highscore">CLOSE</button>
             </div>
         </div>
@@ -350,7 +370,110 @@
         <canvas id="gameCanvas"></canvas>
     </div>
 
-<script>
+<!-- CHANGED: Script type module for Firebase imports -->
+<script type="module">
+    // --- FIREBASE SETUP ---
+    // You MUST create a project at https://console.firebase.google.com/
+    // Add a Web App to get these keys, then enable "Cloud Firestore" in Test Mode.
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // REPLACE THE OBJECT BELOW WITH YOUR OWN KEYS FROM FIREBASE CONSOLE
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY_HERE",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "SENDER_ID",
+        appId: "APP_ID"
+    };
+
+    let db;
+    try {
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        console.log("Firebase initialized");
+    } catch (e) {
+        console.warn("Firebase not configured yet. Leaderboard will be local-only or broken.", e);
+    }
+
+    // Expose functions to window so legacy non-module code/buttons can call them
+    window.submitScore = async function() {
+        const nameInput = document.getElementById('name-input');
+        const name = nameInput.value.toUpperCase().trim() || "HIPPO";
+        const score = GAME.score;
+        const btn = document.getElementById('submit-score-btn');
+
+        if (!db) {
+            alert("Database not configured! (See code comments)");
+            return;
+        }
+
+        btn.innerText = "SAVING...";
+        btn.disabled = true;
+
+        try {
+            await addDoc(collection(db, "scores"), {
+                name: name,
+                score: score,
+                timestamp: new Date()
+            });
+            alert("Score Saved!");
+            // Reset UI
+            nameInput.value = "";
+            btn.innerText = "SUBMIT SCORE";
+            btn.disabled = false;
+            // Go to menu or show highscores
+            document.getElementById('game-over-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+            window.showHighscores(); // Show the board
+        } catch (e) {
+            console.error("Error adding document: ", e);
+            btn.innerText = "ERROR";
+            alert("Error saving score. Check console.");
+        }
+    }
+
+    window.showHighscores = async function() {
+        const container = document.getElementById('highscore-entries');
+        document.getElementById('highscore-modal').style.display = 'block';
+        container.innerHTML = "Loading Global Scores...";
+
+        if (!db) {
+            container.innerHTML = "Database not connected.<br>Please configure Firebase.";
+            return;
+        }
+
+        try {
+            const q = query(collection(db, "scores"), orderBy("score", "desc"), limit(10));
+            const querySnapshot = await getDocs(q);
+            
+            container.innerHTML = "";
+            
+            if (querySnapshot.empty) {
+                container.innerHTML = "No scores yet. Be the first!";
+                return;
+            }
+
+            let rank = 1;
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const row = document.createElement('div');
+                row.className = 'score-row';
+                // Display Name and Score. format: #1 NAME ..... 100
+                row.innerHTML = `<span>#${rank} ${data.name}</span> <span>${data.score}</span>`;
+                container.appendChild(row);
+                rank++;
+            });
+
+        } catch (e) {
+            console.error("Error getting documents: ", e);
+            container.innerHTML = "Error loading scores.";
+        }
+    }
+
+    // --- GAME LOGIC (Moved inside module to access same scope) ---
+    
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
@@ -359,8 +482,7 @@
     hippoSprite.src = 'assets/hippo.png'; // Expecting 400x400
 
     const coinSprite = new Image();
-    // CHANGED: Now expecting 600x100 for 6 frames
-    coinSprite.src = 'assets/reusd.png'; 
+    coinSprite.src = 'assets/reusd.png'; // Expecting 400x100 for 4 frames
 
     // Virtual resolution
     const VIRTUAL_WIDTH = 320; 
@@ -388,38 +510,6 @@
         gravity: 0.18, 
         jumpStrength: -4.0 
     };
-
-    function getLeaderboard() {
-        const data = localStorage.getItem('hippoLeaderboard');
-        return data ? JSON.parse(data) : [];
-    }
-
-    function saveScore(score) {
-        if (score === 0) return;
-        let board = getLeaderboard();
-        const date = new Date().toLocaleDateString(undefined, {month:'numeric', day:'numeric'});
-        board.push({ score: score, date: date });
-        board.sort((a, b) => b.score - a.score);
-        board = board.slice(0, 5);
-        localStorage.setItem('hippoLeaderboard', JSON.stringify(board));
-    }
-
-    function showHighscores() {
-        const board = getLeaderboard();
-        const container = document.getElementById('highscore-entries');
-        container.innerHTML = '';
-        if (board.length === 0) {
-            container.innerHTML = '<p style="font-size:10px; color:#aaa;">No scores yet!</p>';
-        } else {
-            board.forEach((entry, index) => {
-                const row = document.createElement('div');
-                row.className = 'score-row';
-                row.innerHTML = `<span>#${index+1} ${entry.date}</span> <span>${entry.score}</span>`;
-                container.appendChild(row);
-            });
-        }
-        document.getElementById('highscore-modal').style.display = 'block';
-    }
 
     function resize() {
         canvas.width = VIRTUAL_WIDTH;
@@ -608,8 +698,7 @@
             
             // Animation Props
             this.frameX = 0;
-            // CHANGED: 6 frames now
-            this.totalFrames = 6;
+            this.totalFrames = 4;
             this.frameUpdateCounter = 0;
         }
         update() { 
@@ -632,7 +721,7 @@
             if (coinSprite.complete && coinSprite.naturalWidth !== 0) {
                 const drawSize = 24; 
                 
-                // Source: 600x100 sheet (6 frames of 100x100)
+                // Source: 400x100 sheet (4 frames of 100x100)
                 const sSize = 100;
                 
                 ctx.drawImage(
@@ -708,7 +797,8 @@
 
     function gameOver() {
         GAME.state = 'gameover';
-        saveScore(GAME.score);
+        // REMOVED local saveScore call. Now we rely on Submit button.
+        // saveScore(GAME.score); 
         document.getElementById('final-score').innerText = GAME.score;
         document.getElementById('game-over-screen').classList.remove('hidden');
         document.getElementById('score').classList.add('hidden'); 
@@ -727,7 +817,8 @@
         coins = [];
     }
 
-    function startCountdown() {
+    // Attach to window so event listeners can find it
+    window.startCountdown = function() {
         document.getElementById('start-screen').classList.add('hidden');
         document.getElementById('game-over-screen').classList.add('hidden');
         document.getElementById('highscore-modal').style.display = 'none';
@@ -753,6 +844,9 @@
             }
         }, 1000);
     }
+    
+    // Legacy function exposed for completeness if needed
+    window.returnToMenu = returnToMenu;
 
     function gameLoop() {
         ctx.fillStyle = COLORS.background;
@@ -807,21 +901,25 @@
     window.addEventListener('keydown', inputAction);
     ['mousedown', 'touchstart'].forEach(evt => {
         canvas.addEventListener(evt, (e) => {
-            if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') {
+            if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A' && e.target.tagName !== 'INPUT') {
                 e.preventDefault(); 
                 if(GAME.state === 'playing') hippo.flap();
             }
         }, {passive: false});
     });
 
-    document.getElementById('start-btn').addEventListener('click', startCountdown);
-    document.getElementById('restart-btn').addEventListener('click', startCountdown);
+    document.getElementById('start-btn').addEventListener('click', window.startCountdown);
+    document.getElementById('restart-btn').addEventListener('click', window.startCountdown);
     document.getElementById('menu-btn').addEventListener('click', returnToMenu);
     
-    document.getElementById('highscore-btn').addEventListener('click', showHighscores);
+    // Updated button listeners for global scores
+    document.getElementById('highscore-btn').addEventListener('click', window.showHighscores);
     document.getElementById('close-highscore').addEventListener('click', () => {
         document.getElementById('highscore-modal').style.display = 'none';
     });
+    
+    // New Submit Listener
+    document.getElementById('submit-score-btn').addEventListener('click', window.submitScore);
 
     resize();
     gameLoop();
