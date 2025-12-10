@@ -203,7 +203,8 @@
         }
 
         .menu-buttons {
-            margin-top: 15px;
+            /* Increased margin for more space above buttons */
+            margin-top: 30px; 
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -254,31 +255,40 @@
         
         /* Coin icon inside the button */
         .coin-icon {
-            /* Increased Coin Preview Canvas size in CSS */
             width: 40px; 
             height: 40px; 
             image-rendering: pixelated;
+            display: inline-block; /* Ensure it respects vertical alignment */
+            vertical-align: middle;
         }
 
         /* Styling for the new larger promo text container */
         .promo-text-container {
             text-align:center; 
-            margin-bottom: 10px; 
+            padding: 15px 0 30px 0; /* Increased bottom padding */
             color:#00fa9a; 
-            font-size: 14px; /* Increased font size */
+            font-size: 14px; 
             display: flex; 
-            flex-direction: column; /* Stack text lines */
+            flex-direction: column; 
             align-items: center; 
             justify-content: center; 
             gap: 5px;
             line-height: 1.1;
+        }
+        
+        .promo-row {
+             /* New row for the coin and text */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         /* NEW: Styles for the in-menu Highscore List */
         .menu-highscore-list {
             width: 90%;
             max-width: 320px;
-            margin-top: 30px;
+            margin-top: 40px; /* Increased margin below buttons */
             background: rgba(17, 22, 41, 0.9);
             border: 4px solid #00fa9a;
             padding: 15px;
@@ -403,14 +413,15 @@
                             <div style="flex-basis: 100%; height: 5px;"></div>
                             <span class="char">H</span><span class="char">O</span><span class="char">P</span><span class="char">P</span><span class="char">E</span><span class="char">R</span>
                         </h1>
-                        <!-- SUBTEXT DELETED -->
                     </div>
                     
                     <div class="menu-buttons">
-                        <!-- UPDATED COIN TEXT SIZE AND CANVAS SIZE -->
+                        <!-- REFINED: Promo text container for better layout -->
                         <div class="promo-text-container">
-                            <canvas id="coin-preview-canvas" width="40" height="40" class="coin-icon"></canvas>
-                            <span>Collect reUSD.</span>
+                            <div class="promo-row">
+                                <canvas id="coin-preview-canvas" width="40" height="40" class="coin-icon"></canvas>
+                                <span>Collect reUSD.</span>
+                            </div>
                             <span>Fly responsibly.</span>
                         </div>
                         <button class="btn" id="start-btn">
@@ -607,6 +618,48 @@
     const coinSprite = new Image();
     coinSprite.src = 'assets/reusd.png'; // Expecting 1200x200 for 6 frames (2x resolution)
     
+    // Cloud drawing class
+    class Cloud {
+        constructor() {
+            this.reset();
+            this.y = Math.random() * VIRTUAL_HEIGHT * 0.3; // Top 30% of the screen
+        }
+
+        reset() {
+            this.x = VIRTUAL_WIDTH + Math.random() * VIRTUAL_WIDTH;
+            this.y = Math.random() * VIRTUAL_HEIGHT * 0.3;
+            this.size = Math.random() * 20 + 30; // Size between 30 and 50
+            this.speed = Math.random() * 0.1 + 0.05; // Very slow speed
+        }
+
+        update() {
+            this.x -= this.speed * GAME.speed * 0.1; // Slower than scenery
+            if (this.x + this.size < 0) {
+                this.reset();
+            }
+        }
+
+        draw() {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.03)'; // Very low opacity white
+            
+            // Draw a basic pixelated cloud shape (3-part blob)
+            const s = this.size;
+            const x = Math.floor(this.x);
+            const y = Math.floor(this.y);
+
+            // Large central blob
+            ctx.fillRect(x, y + 4, s, s * 0.6);
+            // Left blob
+            ctx.fillRect(x - s * 0.3, y + 8, s * 0.5, s * 0.5);
+            // Right blob
+            ctx.fillRect(x + s * 0.6, y, s * 0.5, s * 0.4);
+        }
+    }
+
+    // Initialize cloud field
+    const clouds = Array.from({ length: 5 }, () => new Cloud());
+
+    
     // Coin animation canvas for the menu subtext
     const coinPreviewCanvas = document.getElementById('coin-preview-canvas');
     const coinPreviewCtx = coinPreviewCanvas.getContext('2d');
@@ -670,7 +723,11 @@
             this.elements.push({ x, width, height });
         }
         update() {
-            const moveSpeed = (GAME.speed * this.speedFactor);
+            // Speed adjusted to be 20% of game speed for background layers, 
+            // but always run even when GAME.speed is 0 (start state)
+            const baseSpeed = 1.5; 
+            const moveSpeed = (GAME.speed > 0 ? GAME.speed : baseSpeed) * this.speedFactor;
+            
             this.elements.forEach(el => el.x -= moveSpeed);
             if (this.elements[0].x + this.elements[0].width < 0) this.elements.shift();
             const lastEl = this.elements[this.elements.length - 1];
@@ -1008,14 +1065,18 @@
         ctx.fillStyle = COLORS.background;
         ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 
-        if (GAME.state === 'playing') {
-            cityLayer.update();
-            cityLayerFront.update();
-            parkLayer.update();
-        }
+        // --- BACKGROUND LOGIC FIX ---
+        // Always update and draw background layers (city/park) and clouds for animation behind the menu
+        cityLayer.update();
+        cityLayerFront.update();
+        parkLayer.update();
+        clouds.forEach(c => c.update()); 
+        
         cityLayer.draw();
         cityLayerFront.draw();
         parkLayer.draw();
+        clouds.forEach(c => c.draw());
+        // --- END FIX ---
 
         if (GAME.state === 'playing') {
             GAME.frame++;
