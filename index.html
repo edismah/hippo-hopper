@@ -191,7 +191,13 @@
         .char:nth-child(11) { animation-delay: 0.9s; }
         .char:nth-child(12) { animation-delay: 1.0s; }
 
-        /* Removed .title-subtext as requested */
+        .title-subtext {
+            color: white;
+            font-size: 8px; 
+            margin-top: 5px; /* Moved lower */
+            margin-bottom: 25px;
+            text-shadow: 1px 1px 0 #000;
+        }
         
         .footer-text {
             position: absolute;
@@ -254,24 +260,9 @@
         
         /* Coin icon inside the button */
         .coin-icon {
-            /* Increased Coin Preview Canvas size in CSS */
-            width: 40px; 
-            height: 40px; 
+            width: 20px; /* Increased from 12px */
+            height: 20px; /* Increased from 12px */
             image-rendering: pixelated;
-        }
-
-        /* Styling for the new larger promo text container */
-        .promo-text-container {
-            text-align:center; 
-            margin-bottom: 10px; 
-            color:#00fa9a; 
-            font-size: 14px; /* Increased font size */
-            display: flex; 
-            flex-direction: column; /* Stack text lines */
-            align-items: center; 
-            justify-content: center; 
-            gap: 5px;
-            line-height: 1.1;
         }
 
         /* NEW: Styles for the in-menu Highscore List */
@@ -286,13 +277,13 @@
         }
         .menu-highscore-list h2 {
             color: #00fa9a;
-            font-size: 12px; 
+            font-size: 12px; /* Smaller than modal title */
             margin-top: 0;
             margin-bottom: 10px;
             text-shadow: 1px 1px 0 #000;
         }
         .menu-highscore-list .score-row {
-            font-size: 9px; 
+            font-size: 9px; /* Smaller font for list */
             color: #fff;
             border-bottom: 1px dashed #333;
             padding: 2px 0;
@@ -403,15 +394,15 @@
                             <div style="flex-basis: 100%; height: 5px;"></div>
                             <span class="char">H</span><span class="char">O</span><span class="char">P</span><span class="char">P</span><span class="char">E</span><span class="char">R</span>
                         </h1>
-                        <!-- SUBTEXT DELETED -->
+                        <!-- NEW SUBTEXT - moved down via CSS margins -->
+                        <p class="title-subtext">Because hippos can fly if yields are high enough.</p>
                     </div>
                     
                     <div class="menu-buttons">
                         <!-- UPDATED COIN TEXT SIZE AND CANVAS SIZE -->
-                        <div class="promo-text-container">
-                            <canvas id="coin-preview-canvas" width="40" height="40" class="coin-icon"></canvas>
-                            <span>Collect reUSD.</span>
-                            <span>Fly responsibly.</span>
+                        <div style="text-align:center; margin-bottom: 10px; color:#00fa9a; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <canvas id="coin-preview-canvas" width="20" height="20" class="coin-icon"></canvas>
+                            Collect reUSD. Fly responsibly.
                         </div>
                         <button class="btn" id="start-btn">
                             <img src="assets/hippo.png" class="btn-icon" alt="">
@@ -425,7 +416,7 @@
 
                     <!-- NEW: HIGH SCORE PREVIEW ADDED TO MAIN MENU -->
                     <div id="menu-highscore-preview" class="menu-highscore-list">
-                        <h2>GLOBAL TOP 3</h2>
+                        <h2>GLOBAL TOP 5</h2>
                         <div id="menu-highscore-entries">Loading...</div>
                     </div>
 
@@ -531,9 +522,9 @@
         });
     }
 
-    // New function to load the top 3 for the main menu preview (changed from 5 to 3)
+    // New function to load the top 5 for the main menu preview
     window.loadMenuHighscores = async function() {
-        const scores = await fetchScores(3);
+        const scores = await fetchScores(5);
         renderScores('menu-highscore-entries', scores, true);
     }
     
@@ -872,19 +863,18 @@
         }
     }
     
-    // --- Coin Preview Animation (Slower, Larger) ---
+    // --- Coin Preview Animation ---
     function animateCoinPreview() {
         requestAnimationFrame(animateCoinPreview);
         if (!coinSprite.complete) return;
         
-        // Changed update rate from 8 to 16 for half speed
-        coinFrame = (coinFrame + 1) % (6 * 16); // 6 frames, 16 updates per frame
+        coinFrame = (coinFrame + 1) % (6 * 8); // 6 frames, 8 updates per frame
 
-        const frameIndex = Math.floor(coinFrame / 16);
+        const frameIndex = Math.floor(coinFrame / 8);
         const sSize = 200;
-        const drawSize = 40; // New larger size
+        const drawSize = 20; // Drawing the icon small
         
-        coinPreviewCtx.clearRect(0, 0, drawSize, drawSize); // Cleared area matches new canvas size
+        coinPreviewCtx.clearRect(0, 0, 20, 20); // Cleared area matches new canvas size
 
         coinPreviewCtx.drawImage(
             coinSprite, 
