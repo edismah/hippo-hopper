@@ -506,10 +506,39 @@
     </div>
 
 <script type="module">
-    // --- FIREBASE SETUP ---
+    // --- FIREBASE IMPORTS ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+    // --- VIRTUAL RESOLUTION & COLORS (MOVED TO TOP) ---
+    // Virtual resolution
+    const VIRTUAL_WIDTH = 320; 
+    const VIRTUAL_HEIGHT = 568; 
+
+    const COLORS = {
+        background: '#111629',
+        pipes: '#0372ff',
+        pipeOutline: '#000000',
+        pipeHighlight: '#4d9aff',
+        coin: '#00fa9a',
+        hippoSkin: '#8ea8c3',
+        hippoDark: '#6b8299',
+        bgCityRear: '#0d1120', 
+        bgCityFront: '#161d36', 
+        bgPark: '#1a2639' 
+    };
+
+    let GAME = {
+        state: 'start',
+        score: 0,
+        frame: 0,
+        baseSpeed: 1.5,
+        speed: 1.5,
+        gravity: 0.18, 
+        jumpStrength: -4.0 
+    };
+
+    // --- FIREBASE CONFIGURATION ---
     // Your specific Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyDQ18VXtdzTokZT131cPxvt9e29DEPp-_c",
@@ -628,7 +657,7 @@
         }
     }
 
-    // --- GAME LOGIC (Moved inside module to access same scope) ---
+    // --- GAME LOGIC ---
     
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -693,33 +722,6 @@
     const coinPreviewCanvas = document.getElementById('coin-preview-canvas');
     const coinPreviewCtx = coinPreviewCanvas.getContext('2d');
     coinPreviewCtx.imageSmoothingEnabled = false;
-
-    // Virtual resolution
-    const VIRTUAL_WIDTH = 320; 
-    const VIRTUAL_HEIGHT = 568; 
-
-    const COLORS = {
-        background: '#111629',
-        pipes: '#0372ff',
-        pipeOutline: '#000000',
-        pipeHighlight: '#4d9aff',
-        coin: '#00fa9a',
-        hippoSkin: '#8ea8c3',
-        hippoDark: '#6b8299',
-        bgCityRear: '#0d1120', 
-        bgCityFront: '#161d36', 
-        bgPark: '#1a2639' 
-    };
-
-    let GAME = {
-        state: 'start',
-        score: 0,
-        frame: 0,
-        baseSpeed: 1.5,
-        speed: 1.5,
-        gravity: 0.18, 
-        jumpStrength: -4.0 
-    };
 
     function resize() {
         canvas.width = VIRTUAL_WIDTH;
@@ -1092,6 +1094,7 @@
         ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         
         // Determine the speed for background animations
+        // Use baseSpeed (1.5) for start/gameover states to keep animation running
         const effectiveSpeed = GAME.state === 'playing' ? GAME.speed : GAME.baseSpeed;
 
         // --- BACKGROUND LOGIC FIX ---
