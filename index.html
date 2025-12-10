@@ -370,22 +370,20 @@
         <canvas id="gameCanvas"></canvas>
     </div>
 
-<!-- CHANGED: Script type module for Firebase imports -->
 <script type="module">
     // --- FIREBASE SETUP ---
-    // You MUST create a project at https://console.firebase.google.com/
-    // Add a Web App to get these keys, then enable "Cloud Firestore" in Test Mode.
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // REPLACE THE OBJECT BELOW WITH YOUR OWN KEYS FROM FIREBASE CONSOLE
+    // Your specific Firebase configuration
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY_HERE",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT_ID.appspot.com",
-        messagingSenderId: "SENDER_ID",
-        appId: "APP_ID"
+      apiKey: "AIzaSyDQ18VXtdzTokZT131cPxvt9e29DEPp-_c",
+      authDomain: "hippo-hopper-scores.firebaseapp.com",
+      projectId: "hippo-hopper-scores",
+      storageBucket: "hippo-hopper-scores.firebasestorage.app",
+      messagingSenderId: "385161958730",
+      appId: "1:385161958730:web:7bd2b4df8c79a26e0bddb3",
+      measurementId: "G-G2XFLVQXXQ"
     };
 
     let db;
@@ -413,6 +411,7 @@
         btn.disabled = true;
 
         try {
+            // Note: Saves to a collection named 'scores'
             await addDoc(collection(db, "scores"), {
                 name: name,
                 score: score,
@@ -482,7 +481,7 @@
     hippoSprite.src = 'assets/hippo.png'; // Expecting 400x400
 
     const coinSprite = new Image();
-    coinSprite.src = 'assets/reusd.png'; // Expecting 400x100 for 4 frames
+    coinSprite.src = 'assets/reusd.png'; // Expecting 600x100 for 6 frames
 
     // Virtual resolution
     const VIRTUAL_WIDTH = 320; 
@@ -698,7 +697,7 @@
             
             // Animation Props
             this.frameX = 0;
-            this.totalFrames = 4;
+            this.totalFrames = 6;
             this.frameUpdateCounter = 0;
         }
         update() { 
@@ -721,7 +720,7 @@
             if (coinSprite.complete && coinSprite.naturalWidth !== 0) {
                 const drawSize = 24; 
                 
-                // Source: 400x100 sheet (4 frames of 100x100)
+                // Source: 600x100 sheet (6 frames of 100x100)
                 const sSize = 100;
                 
                 ctx.drawImage(
