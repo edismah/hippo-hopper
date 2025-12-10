@@ -140,7 +140,7 @@
         }
 
         .title-box h1 {
-            font-size: 44px; /* Increased size */
+            font-size: 60px; /* INCREASED SIZE to 60px */
             line-height: 1.1;
             text-shadow: 6px 6px 0 #000;
             margin: 0;
@@ -229,6 +229,7 @@
             box-shadow: 0 10px 0 rgba(0,0,0,0.5);
             text-align: center;
             max-width: 80%;
+            transform: translateY(-20%); /* MOVED HIGHER UP */
         }
 
         /* New Input Styles */
@@ -258,6 +259,7 @@
             transform: translate(-50%, -50%);
             display: none;
             z-index: 50;
+            pointer-events: auto; /* FIXED: Added to ensure clicks register */
         }
         .highscore-list h2 {
             color: #00fa9a;
@@ -481,7 +483,7 @@
     hippoSprite.src = 'assets/hippo.png'; // Expecting 400x400
 
     const coinSprite = new Image();
-    coinSprite.src = 'assets/reusd.png'; // Expecting 600x100 for 6 frames
+    coinSprite.src = 'assets/reusd.png'; // Expecting 1200x200 for 6 frames (2x resolution)
 
     // Virtual resolution
     const VIRTUAL_WIDTH = 320; 
@@ -716,17 +718,18 @@
             const floatY = Math.sin(this.floatTimer) * 3;
             const cx = Math.floor(this.x - this.size/2);
             const cy = Math.floor(this.y - this.size/2 + floatY);
+            
+            // Source frame size is 200px (1200 / 6)
+            const sSize = 200;
+            // Draw size is increased to 48px to look less pixelated given the higher resolution source
+            const drawSize = 48; 
 
             if (coinSprite.complete && coinSprite.naturalWidth !== 0) {
-                const drawSize = 24; 
-                
-                // Source: 600x100 sheet (6 frames of 100x100)
-                const sSize = 100;
                 
                 ctx.drawImage(
                     coinSprite, 
-                    this.frameX * sSize, 0, sSize, sSize, 
-                    cx - drawSize/2 + this.size/2, cy - drawSize/2 + this.size/2, drawSize, drawSize
+                    this.frameX * sSize, 0, sSize, sSize, // Source: Use sSize for source width/height (200x200 crop)
+                    cx - drawSize/2 + this.size/2, cy - drawSize/2 + this.size/2, drawSize, drawSize // Destination: Draw at new scaled size
                 );
             } else {
                 ctx.fillStyle = COLORS.coin;
