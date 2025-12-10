@@ -111,7 +111,9 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            /* Shifting up the content */
+            justify-content: flex-start; 
+            padding-top: 15vh;
             align-items: center;
         }
 
@@ -158,7 +160,7 @@
         }
 
         .title-box h1 {
-            font-size: 40px; /* DECREASED to 40px */
+            font-size: 40px; 
             line-height: 1.1;
             text-shadow: 6px 6px 0 #000;
             margin: 0;
@@ -167,7 +169,7 @@
             flex-wrap: wrap;
             justify-content: center;
             gap: 2px;
-            width: 90%; /* Ensure it wraps correctly within container */
+            width: 90%; 
             margin: 0 auto;
         }
 
@@ -191,8 +193,8 @@
 
         .title-subtext {
             color: white;
-            font-size: 8px; /* Small font size for subtext */
-            margin-top: -15px; /* Pull it closer to the title */
+            font-size: 8px; 
+            margin-top: 5px; /* Moved lower */
             margin-bottom: 25px;
             text-shadow: 1px 1px 0 #000;
         }
@@ -258,10 +260,35 @@
         
         /* Coin icon inside the button */
         .coin-icon {
-            width: 12px;
-            height: 12px;
+            width: 20px; /* Increased from 12px */
+            height: 20px; /* Increased from 12px */
             image-rendering: pixelated;
         }
+
+        /* NEW: Styles for the in-menu Highscore List */
+        .menu-highscore-list {
+            width: 90%;
+            max-width: 320px;
+            margin-top: 30px;
+            background: rgba(17, 22, 41, 0.9);
+            border: 4px solid #00fa9a;
+            padding: 15px;
+            border-radius: 15px;
+        }
+        .menu-highscore-list h2 {
+            color: #00fa9a;
+            font-size: 12px; /* Smaller than modal title */
+            margin-top: 0;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 0 #000;
+        }
+        .menu-highscore-list .score-row {
+            font-size: 9px; /* Smaller font for list */
+            color: #fff;
+            border-bottom: 1px dashed #333;
+            padding: 2px 0;
+        }
+
 
         .game-over-box {
             background: rgba(17, 22, 41, 0.95);
@@ -353,6 +380,7 @@
             <div class="score-display" id="score">0</div>
             <a href="https://resupply.fi" target="_blank" class="promo-link">resupply.fi</a>
             
+            <!-- FOOTER TEXT MOVED TO THE BOTTOM OF UI LAYER -->
             <p class="footer-text">Past hops do not predict future hops.</p>
 
             <div id="start-screen" class="interactive-layer">
@@ -366,14 +394,14 @@
                             <div style="flex-basis: 100%; height: 5px;"></div>
                             <span class="char">H</span><span class="char">O</span><span class="char">P</span><span class="char">P</span><span class="char">E</span><span class="char">R</span>
                         </h1>
-                        <!-- NEW SUBTEXT -->
+                        <!-- NEW SUBTEXT - moved down via CSS margins -->
                         <p class="title-subtext">Because hippos can fly if yields are high enough.</p>
                     </div>
                     
                     <div class="menu-buttons">
-                        <!-- UPDATED BUTTON TEXT AND ADDED SPINNING COIN ICON -->
-                        <div style="text-align:center; margin-bottom: 10px; color:#00fa9a; font-size: 10px; display: flex; align-items: center; justify-content: center; gap: 5px;">
-                            <canvas id="coin-preview-canvas" width="16" height="16" class="coin-icon"></canvas>
+                        <!-- UPDATED COIN TEXT SIZE AND CANVAS SIZE -->
+                        <div style="text-align:center; margin-bottom: 10px; color:#00fa9a; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <canvas id="coin-preview-canvas" width="20" height="20" class="coin-icon"></canvas>
                             Collect reUSD. Fly responsibly.
                         </div>
                         <button class="btn" id="start-btn">
@@ -385,6 +413,13 @@
                             HIGHSCORES
                         </button>
                     </div>
+
+                    <!-- NEW: HIGH SCORE PREVIEW ADDED TO MAIN MENU -->
+                    <div id="menu-highscore-preview" class="menu-highscore-list">
+                        <h2>GLOBAL TOP 5</h2>
+                        <div id="menu-highscore-entries">Loading...</div>
+                    </div>
+
                 </div>
             </div>
 
@@ -406,6 +441,7 @@
                 </div>
             </div>
 
+            <!-- MODAL HIDDEN BY DEFAULT, NOW USED ONLY FOR FULL LIST -->
             <div id="highscore-modal" class="highscore-list">
                 <h2>GLOBAL TOP 10</h2>
                 <div id="highscore-entries">Loading...</div>
@@ -444,6 +480,66 @@
     } catch (e) {
         console.warn("Firebase not configured yet. Leaderboard will be local-only or broken.", e);
     }
+    
+    // --- HIGH SCORE LOGIC (Updated to support Menu Preview) ---
+
+    // Function to fetch scores from Firebase
+    async function fetchScores(limitCount) {
+        if (!db) return [];
+        try {
+            const q = query(collection(db, "scores"), orderBy("score", "desc"), limit(limitCount));
+            const querySnapshot = await getDocs(q);
+            const scores = [];
+            querySnapshot.forEach((doc) => {
+                scores.push(doc.data());
+            });
+            return scores;
+        } catch (e) {
+            console.error("Error fetching scores: ", e);
+            return [];
+        }
+    }
+
+    // Function to render scores into a target container
+    function renderScores(containerId, scores, isMenuPreview = false) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        container.innerHTML = "";
+        
+        if (scores.length === 0) {
+            container.innerHTML = isMenuPreview ? "No scores yet." : "No scores yet. Be the first!";
+            return;
+        }
+
+        let rank = 1;
+        scores.forEach((data) => {
+            const row = document.createElement('div');
+            row.className = 'score-row';
+            row.innerHTML = `<span>#${rank} ${data.name}</span> <span>${data.score}</span>`;
+            container.appendChild(row);
+            rank++;
+        });
+    }
+
+    // New function to load the top 5 for the main menu preview
+    window.loadMenuHighscores = async function() {
+        const scores = await fetchScores(5);
+        renderScores('menu-highscore-entries', scores, true);
+    }
+    
+    // Updated function for the full modal (Top 10)
+    window.showHighscores = async function() {
+        const modal = document.getElementById('highscore-modal');
+        const container = document.getElementById('highscore-entries');
+        modal.style.display = 'block';
+        container.innerHTML = "Loading Global Scores...";
+
+        const scores = await fetchScores(10);
+        renderScores('highscore-entries', scores, false);
+    }
+    
+    // --- END HIGH SCORE LOGIC ---
 
     // Expose functions to window so legacy non-module code/buttons can call them
     window.submitScore = async function() {
@@ -475,49 +571,11 @@
             // Go to menu or show highscores
             document.getElementById('game-over-screen').classList.add('hidden');
             document.getElementById('start-screen').classList.remove('hidden');
-            window.showHighscores(); // Show the board
+            window.showHighscores(); // Show the full board after submitting
         } catch (e) {
             console.error("Error adding document: ", e);
             btn.innerText = "ERROR";
             alert("Error saving score. Check console.");
-        }
-    }
-
-    window.showHighscores = async function() {
-        const container = document.getElementById('highscore-entries');
-        document.getElementById('highscore-modal').style.display = 'block';
-        container.innerHTML = "Loading Global Scores...";
-
-        if (!db) {
-            container.innerHTML = "Database not connected.<br>Please configure Firebase.";
-            return;
-        }
-
-        try {
-            const q = query(collection(db, "scores"), orderBy("score", "desc"), limit(10));
-            const querySnapshot = await getDocs(q);
-            
-            container.innerHTML = "";
-            
-            if (querySnapshot.empty) {
-                container.innerHTML = "No scores yet. Be the first!";
-                return;
-            }
-
-            let rank = 1;
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                const row = document.createElement('div');
-                row.className = 'score-row';
-                // Display Name and Score. format: #1 NAME ..... 100
-                row.innerHTML = `<span>#${rank} ${data.name}</span> <span>${data.score}</span>`;
-                container.appendChild(row);
-                rank++;
-            });
-
-        } catch (e) {
-            console.error("Error getting documents: ", e);
-            container.innerHTML = "Error loading scores.";
         }
     }
 
@@ -814,9 +872,9 @@
 
         const frameIndex = Math.floor(coinFrame / 8);
         const sSize = 200;
-        const drawSize = 16; // Drawing the icon small
+        const drawSize = 20; // Drawing the icon small
         
-        coinPreviewCtx.clearRect(0, 0, 16, 16);
+        coinPreviewCtx.clearRect(0, 0, 20, 20); // Cleared area matches new canvas size
 
         coinPreviewCtx.drawImage(
             coinSprite, 
@@ -902,6 +960,7 @@
         hippo.reset();
         pipes = [];
         coins = [];
+        window.loadMenuHighscores(); // Reload scores for the menu preview
     }
 
     // Attach to window so event listeners can find it
@@ -1008,8 +1067,9 @@
     // New Submit Listener
     document.getElementById('submit-score-btn').addEventListener('click', window.submitScore);
     
-    // Start coin animation when the script runs
-    animateCoinPreview();
+    // Initial load for menu highscores
+    window.loadMenuHighscores(); 
+    animateCoinPreview(); // Start coin animation
 
     resize();
     gameLoop();
